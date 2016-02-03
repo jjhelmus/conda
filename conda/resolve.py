@@ -479,6 +479,7 @@ class Resolve(object):
         log.debug('Beginning the pruning process')
 
         specs = list(map(MatchSpec, specs))
+        priorities = {}
         len0 = len(specs)
         bad_deps = []
         valid = {}
@@ -503,18 +504,19 @@ class Resolve(object):
             # so add it to the master list. That way it is still
             # participates in the pruning even if one of its 
             # parents is pruned away
-            if all(name != ms.name for ms in specs):
+            first = name not in priorities
+            if first:
+                priorities[name] = 2 if top else 1
                 specs.append(MatchSpec(name, parent=str(top)))
 
             # Prune packages that don't match any of the patterns
             # or which may be missing dependencies
             nold = nnew = 0
-            first = False
             notfound = set()
             for fn in group:
                 sat = valid.get(fn, None)
                 if sat is None:
-                    first = sat = valid[fn] = True
+                    sat = valid[fn] = True
                 nold += sat
                 if sat:
                     sat = any(self.match(ms, fn) for ms in matches)
@@ -662,10 +664,12 @@ class Resolve(object):
                 + ['Use "conda info <package>" to see the dependencies for each package.'])
             sys.exit('\n'.join(hint))
 
-        dists = {fn:info for fn,info in iteritems(self.index) if touched.get(fn)}
-        if wrap:
-            dists = {fn:Package(fn,info) for fn,info in iteritems(dists)}
-        return dists, specs
+        dists = {}
+        for fn, info in iteritems(self.index):
+            if touched.get(fn):
+                priorities.setdefault(info['name'],3)
+                dists[fn] = Package(fn,info) if wrap else info
+        return dists, specs, priorities
 
     def match(self, ms, fn):
         ms = MatchSpec(ms)
@@ -991,7 +995,8 @@ Use 'conda info %s' etc. to see the dependencies for each package.""" % ('\n  - 
         dotlog.debug("Solving for %s" % specs)
 
         try:
-            dists, new_specs = self.get_dists(specs, wrap=False)
+            dists, new_specs, priorities = self.get_dists(specs, wrap=False)
+            print(priorities)
         except NoPackagesFound:
             raise
 
