@@ -844,9 +844,11 @@ class Resolve(object):
         log.debug('Initial package channel/version metric: %d/%d', obj3a, obj3)
 
         # Track features: minimize feature count
-        eq_feature_count = r2.generate_feature_count(C)
-        solution, obj1 = C.minimize(eq_feature_count, solution)
-        log.debug('Track feature count: %d', obj1)
+        # Skip this optimization
+        if False:
+            eq_feature_count = r2.generate_feature_count(C)
+            solution, obj1 = C.minimize(eq_feature_count, solution)
+            log.debug('Track feature count: %d', obj1)
 
         # Featured packages: minimize number of featureless packages
         # installed when a featured alternative is feasible.
