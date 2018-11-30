@@ -13,11 +13,11 @@ from traceback import format_exception_only
 import warnings
 
 from .package_cache_data import PackageCacheData
-from .path_actions import (CompilePycAction, CreateNonadminAction, CreatePrefixRecordAction,
-                           CreatePythonEntryPointAction, LinkPathAction, MakeMenuAction,
-                           RegisterEnvironmentLocationAction, RemoveLinkedPackageRecordAction,
-                           RemoveMenuAction, UnlinkPathAction, UnregisterEnvironmentLocationAction,
-                           UpdateHistoryAction)
+from .path_actions import (CompileMultiplePycAction, CreateNonadminAction,
+                           CreatePrefixRecordAction, CreatePythonEntryPointAction, LinkPathAction,
+                           MakeMenuAction, RegisterEnvironmentLocationAction,
+                           RemoveLinkedPackageRecordAction, RemoveMenuAction, UnlinkPathAction,
+                           UnregisterEnvironmentLocationAction, UpdateHistoryAction)
 from .prefix_data import PrefixData, get_python_version_for_prefix
 from .. import CondaError, CondaMultiError, conda_signal_handler
 from .._vendor.auxlib.collection import first
@@ -683,7 +683,7 @@ class UnlinkLinkTransaction(object):
         create_menu_actions = MakeMenuAction.create_actions(*required_quad)
 
         python_entry_point_actions = CreatePythonEntryPointAction.create_actions(*required_quad)
-        compile_pyc_actions = CompilePycAction.create_actions(*required_quad,
+        compile_pyc_actions = CompileMultiplePycAction.create_actions(*required_quad,
                                                               file_link_actions=file_link_actions)
 
         # if requested_spec:
@@ -700,7 +700,7 @@ class UnlinkLinkTransaction(object):
         all_link_path_actions = tuple(concatv(
             file_link_actions,
             python_entry_point_actions,
-            compile_pyc_actions,
+            #compile_pyc_actions,
         ))
 
         # leased_paths = tuple(axn.leased_path_entry for axn in concatv(
