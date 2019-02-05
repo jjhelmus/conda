@@ -1,5 +1,5 @@
 package:
-  name: _conda_test_env_activate_when_post_link_executed
+  name: _conda_test_env_activated_when_post_link_executed
   version: 1.0
 
 about:
