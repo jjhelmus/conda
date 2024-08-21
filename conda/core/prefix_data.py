@@ -104,7 +104,7 @@ class PrefixData(metaclass=PrefixDataType):
         fn = prefix_record.fn
         known_ext = False
         # .dist-info is for things installed by pip
-        for ext in CONDA_PACKAGE_EXTENSIONS + (".dist-info",):
+        for ext in CONDA_PACKAGE_EXTENSIONS + (".dist-info", ".whl"):
             if fn.endswith(ext):
                 fn = fn.replace(ext, "")
                 known_ext = True
@@ -223,7 +223,10 @@ class PrefixData(metaclass=PrefixDataType):
             # check that prefix record json filename conforms to name-version-build
             # apparently implemented as part of #2638 to resolve #2599
             try:
-                n, v, b = basename(prefix_record_json_path)[:-5].rsplit("-", 2)
+                if prefix_record.fn.endswith(".whl"):
+                    n, v, b = basename(prefix_record_json_path)[:-5].split("-", 2)
+                else:
+                    n, v, b = basename(prefix_record_json_path)[:-5].rsplit("-", 2)
                 if (n, v, b) != (
                     prefix_record.name,
                     prefix_record.version,
