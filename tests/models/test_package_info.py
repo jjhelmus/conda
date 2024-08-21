@@ -17,7 +17,19 @@ def test_package_info():
         subdir=context.subdir,
         fn="doesnt-matter",
         md5="0123456789",
+        extras={
+            "extra1": ["optional-dep"],
+            "extra2": ["optional-dep", "another-optional-dep"],
+        },
     )
+    assert index_json_record.extras == {
+        "extra1": ("optional-dep",),
+        "extra2": (
+            "optional-dep",
+            "another-optional-dep",
+        ),
+    }
+
     icondata = "icondata"
     package_metadata = PackageMetadata(
         package_metadata_version=1,

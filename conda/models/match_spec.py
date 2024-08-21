@@ -1068,7 +1068,13 @@ class CaseInsensitiveStrMatch(GlobLowerStrMatch):
 class ExtrasMatch(SplitStrMatch):
     """Extras are comma separated values"""
 
-    pass
+    def match(self, other):
+        # Here other is expected to be the packagerecord extras entry,
+        # which is a frozendict of tuples
+        if isinstance(other, dict):
+            return self._raw_value <= other.keys()
+        else:
+            return super().match(other)
 
 
 _implementors = {

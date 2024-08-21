@@ -1252,3 +1252,24 @@ def test_extras() -> None:
 
     m = MatchSpec("foo=2", extras="a, b")
     assert m.extras.exact_value == {"a", "b"}
+
+
+def test_extras_match() -> None:
+    attrs = {
+        "channel": None,
+        "name": "attrs",
+        "version": "23.1.0",
+        "build": "py39h06a4308_0",
+        "build_number": 0,
+        "fn": "attrs-23.1.0-py39h06a4308_0.conda",
+        "depends": ["python >=3.9,3.10.0a0"],
+        "extras": {"test": ["pytest"], "dev": ["pre-commit"]},
+    }
+    pkg = PackageRecord.from_objects(attrs)
+
+    assert MatchSpec("attrs").match(pkg)
+    assert MatchSpec("attrs[extras=dev]").match(pkg)
+    assert MatchSpec("attrs[extras=test]").match(pkg)
+    assert MatchSpec("attrs[extras='test,dev']").match(pkg)
+    assert not MatchSpec("attrs[extras=foo]").match(pkg)
+    assert not MatchSpec("attrs[extras='dev,foo']").match(pkg)
