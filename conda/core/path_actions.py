@@ -1380,11 +1380,36 @@ class ExtractPackageAction(PathAction):
         if lexists(self.target_full_path):
             rm_rf(self.target_full_path)
 
-        extract_tarball(
-            self.source_full_path,
-            self.target_full_path,
-            progress_update_callback=progress_update_callback,
-        )
+        if self.source_full_path.endswith(".whl"):
+            from . import extract_whl
+            extract_whl.extract_whl_as_conda_pkg(
+                self.source_full_path,
+                self.target_full_path,
+            )
+            prec: PackageRecord = self.record_or_spec
+            index_json = {
+                "arch": None,
+                "build": prec.build,
+                "build_number": prec.build_number,
+                "depends": prec.depends,
+                "license": prec.license,
+                "name": prec.name,
+                "noarch": "python",
+                "platform": None,
+                "subdir": "noarch",
+                "timestamp": prec.timestamp,
+                "version": prec.version,
+
+            }
+            index_json_path = join(self.target_full_path, "info", "index.json")
+            write_as_json_to_file(index_json_path, index_json)
+        else:
+            extract_tarball(
+                self.source_full_path,
+                self.target_full_path,
+                progress_update_callback=progress_update_callback,
+            )
+
 
         try:
             raw_index_json = read_index_json(self.target_full_path)
