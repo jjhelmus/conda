@@ -43,7 +43,7 @@ PATH_MATCH_REGEX = (
 
 # any other extension will be mangled by CondaSession.get() as it tries to find
 # channel names from URLs, through strip_pkg_extension()
-KNOWN_EXTENSIONS = (".conda", ".tar.bz2", ".json", ".jlap", ".json.zst")
+KNOWN_EXTENSIONS = (".conda", ".tar.bz2", ".json", ".jlap", ".json.zst", ".whl")
 
 
 def is_path(value):
