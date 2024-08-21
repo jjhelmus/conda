@@ -1235,3 +1235,20 @@ def test_invalid_version_reports_spec(spec):
     with pytest.raises(InvalidMatchSpec) as exc:
         MatchSpec(spec)
     assert spec in str(exc.value)
+
+
+def test_extras() -> None:
+    m = MatchSpec("foo=2")
+    assert m.extras is None
+
+    m = MatchSpec("foo[extras=a]=2")
+    assert m.extras.exact_value == {"a"}
+
+    m = MatchSpec("foo[extras='b,a']=2")
+    assert m.extras.exact_value == {"a", "b"}
+
+    m = MatchSpec("foo[extras='b, a']=2")
+    assert m.extras.exact_value == {"a", "b"}
+
+    m = MatchSpec("foo=2", extras="a, b")
+    assert m.extras.exact_value == {"a", "b"}

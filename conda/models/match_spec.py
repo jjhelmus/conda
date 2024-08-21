@@ -179,6 +179,7 @@ class MatchSpec(metaclass=MatchSpecType):
         "license",
         "license_family",
         "fn",
+        "extras",
     )
     FIELD_NAMES_SET = frozenset(FIELD_NAMES)
     _MATCHER_CACHE = {}
@@ -481,6 +482,10 @@ class MatchSpec(metaclass=MatchSpecType):
             val = basename(val)
         assert val
         return val
+
+    @property
+    def extras(self):
+        return self._match_components.get("extras")
 
     @classmethod
     def merge(cls, match_specs, union=False):
@@ -930,7 +935,7 @@ class SplitStrMatch(MatchInterface):
 
     def _convert(self, value):
         try:
-            return frozenset(value.replace(" ", ",").split(","))
+            return frozenset(sorted(value.replace(" ", "").split(",")))
         except AttributeError:
             if isiterable(value):
                 return frozenset(value)
@@ -944,13 +949,13 @@ class SplitStrMatch(MatchInterface):
 
     def __repr__(self):
         if self._raw_value:
-            return "{{{}}}".format(", ".join(f"'{s}'" for s in sorted(self._raw_value)))
+            return "{{{}}}".format(",".join(f"'{s}'" for s in sorted(self._raw_value)))
         else:
             return "set()"
 
     def __str__(self):
         # this space delimiting makes me nauseous
-        return " ".join(sorted(self._raw_value))
+        return ",".join(sorted(self._raw_value))
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self._raw_value == other._raw_value
@@ -1060,6 +1065,12 @@ class CaseInsensitiveStrMatch(GlobLowerStrMatch):
             return self._raw_value == _other_val
 
 
+class ExtrasMatch(SplitStrMatch):
+    """Extras are comma separated values"""
+
+    pass
+
+
 _implementors = {
     "channel": ChannelMatch,
     "name": GlobLowerStrMatch,
@@ -1070,4 +1081,5 @@ _implementors = {
     "features": FeatureMatch,
     "license": CaseInsensitiveStrMatch,
     "license_family": CaseInsensitiveStrMatch,
+    "extras": ExtrasMatch,
 }
