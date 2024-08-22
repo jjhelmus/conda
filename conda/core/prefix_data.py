@@ -224,6 +224,7 @@ class PrefixData(metaclass=PrefixDataType):
             try:
                 if prefix_record.fn.endswith(".whl"):
                     n, v, b = basename(prefix_record_json_path)[:-5].split("-", 2)
+                    n = n.lower().replace("_", "-")
                 else:
                     n, v, b = basename(prefix_record_json_path)[:-5].rsplit("-", 2)
                 if (n, v, b) != (
