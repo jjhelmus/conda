@@ -15,6 +15,7 @@ Object inheritance:
 
 from __future__ import annotations
 
+from collections import defaultdict
 from os.path import basename, join
 
 from boltons.timeutils import dt_to_timestamp, isoparse
@@ -270,6 +271,9 @@ class PackageRecord(DictSafeMixin, Entity):
     sha256 = StringField(
         default=None, required=False, nullable=True, default_in_dump=False
     )
+    requested_extras = StringField(
+        default=None, required=False, nullable=True, default_in_dump=False
+    )
 
     @property
     def schannel(self):
@@ -328,9 +332,9 @@ class PackageRecord(DictSafeMixin, Entity):
     arch = StringField(required=False, nullable=True)  # so legacy
     platform = EnumField(Platform, required=False, nullable=True)  # so legacy
 
-    depends = ListField(str, default=())
+    _depends = ListField(str, default=(), aliases=("depends",))
     constrains = ListField(str, default=())
-    extras = MapField(default={})
+    extras = MapField(default=defaultdict(list))
 
     track_features = _FeaturesField(required=False, default=(), default_in_dump=False)
     features = _FeaturesField(required=False, default=(), default_in_dump=False)
@@ -357,6 +361,23 @@ class PackageRecord(DictSafeMixin, Entity):
     timestamp = TimestampField()
 
     @property
+    def depends(self):
+        from .match_spec import ExtrasMatch, MatchSpec
+
+        result = {ms.name: ms for ms in MatchSpec.merge(self._depends)}
+        if self.requested_extras:
+            extras = ExtrasMatch(self.requested_extras)
+            for ex in extras.exact_value:
+                for dep in self.extras[ex]:
+                    ms = MatchSpec(dep)
+                    result[ms.name] = MatchSpec(ms)  # , optional=False)
+        return tuple(result.values())
+
+    @depends.setter
+    def set_depends(self, value):
+        self._depends = value
+
+    @property
     def combined_depends(self):
         from .match_spec import MatchSpec
 
@@ -364,6 +385,7 @@ class PackageRecord(DictSafeMixin, Entity):
         for spec in self.constrains or ():
             ms = MatchSpec(spec)
             result[ms.name] = MatchSpec(ms, optional=(ms.name not in result))
+
         return tuple(result.values())
 
     # the canonical code abbreviation for PackageRecord is `prec`, not to be confused with
