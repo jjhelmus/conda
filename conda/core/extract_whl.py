@@ -21,9 +21,17 @@ class MyWheelDestination(WheelDestination):
     def __init__(self, target_full_path: str) -> None:
         self.target_full_path = target_full_path
         self.sp_dir = os.path.join(target_full_path, "site-packages")
+        self.entry_points = []
 
     def write_script(self, name: str, module: str, attr: str, section: Literal['console'] | Literal['gui']) -> RecordEntry:
-        raise NotImplementedError("scripts not supported at this time")
+        # TODO check if console/gui
+        entry_point = f"{name} = {module}:{attr}"
+        self.entry_points.append(entry_point)
+        return RecordEntry(
+            path="../../../bin/{name}",
+            hash_=None,
+            size=None,
+        )
 
     def write_file(self, scheme: Scheme, path: str | PathLike[str], stream: BinaryIO, is_executable: bool) -> RecordEntry:
         if scheme not in SUPPORTED_SCEMES:
@@ -45,7 +53,7 @@ class MyWheelDestination(WheelDestination):
             )
 
         if is_executable:
-            installer.utils.make_file_executable(dest)
+            installer.utils.make_file_executable(dest_path)
 
         return RecordEntry(
             path=path,
@@ -65,12 +73,17 @@ class MyWheelDestination(WheelDestination):
             },
             "package_metadata_version": 1
         }
+        if self.entry_points:
+            link_json_data["noarch"]["entry_points"] = self.entry_points
         link_json_path = os.path.join(self.target_full_path, "info", "link.json")
         write_as_json_to_file(link_json_path, link_json_data)
 
         # paths.json
         paths = []
         for _, record in records:
+            if record.path.startswith('..'):
+                # entry point
+                continue
             path = {
                 "_path": f"site-packages/{record.path}",
                 "path_type": "hardlink",
