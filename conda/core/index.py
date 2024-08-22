@@ -335,7 +335,7 @@ def get_reduced_index(
         """
         name = spec.get_raw_value("name")
         if name and name not in collected_names:
-            pending_names.add(name)
+            pending_names.add((name, spec.extras))
         track_features = spec.get_raw_value("track_features")
         if track_features:
             for ftr_name in track_features:
@@ -372,9 +372,12 @@ def get_reduced_index(
 
     while pending_names or pending_track_features:
         while pending_names:
-            name = pending_names.pop()
+            name, extras = pending_names.pop()
             collected_names.add(name)
-            spec = MatchSpec(name)
+            if extras:
+                spec = MatchSpec(name=name, extras=str(extras))
+            else:
+                spec = MatchSpec(name)
             new_records = SubdirData.query_all(
                 spec, channels=channels, subdirs=subdirs, repodata_fn=repodata_fn
             )

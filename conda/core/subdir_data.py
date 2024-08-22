@@ -161,10 +161,7 @@ class SubdirData(metaclass=SubdirDataType):
                 for prec in self._iter_records_by_name(package_name):
                     if param.match(prec):
                         if param.extras:
-                            depends = list(prec.depends)
-                            for ex in param.extras.exact_value:
-                                depends.extend(prec.extras[ex])
-                            prec.depends = tuple(depends)
+                            prec.requested_extras = str(param.extras)
                         yield prec
             else:
                 for prec in self.iter_records():
