@@ -1071,7 +1071,7 @@ class ExtrasMatch(SplitStrMatch):
     def match(self, other):
         # Here other is expected to be the packagerecord extras entry,
         # which is a frozendict of tuples
-        if isinstance(other, dict):
+        if isinstance(other, dict) or isinstance(other, frozendict):
             return self._raw_value <= other.keys()
         else:
             return super().match(other)

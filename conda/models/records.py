@@ -309,13 +309,16 @@ class PackageRecord(DictSafeMixin, Entity):
         return self._pkey == other._pkey
 
     def dist_str(self):
-        return "{}{}::{}-{}-{}".format(
+        dist = "{}{}::{}-{}-{}".format(
             self.channel.canonical_name,
             ("/" + self.subdir) if self.subdir else "",
             self.name,
             self.version,
             self.build,
         )
+        if self.requested_extras:
+            dist = f"{dist}[extras={self.requested_extras}]"
+        return dist
 
     def dist_fields_dump(self):
         return {
@@ -368,7 +371,9 @@ class PackageRecord(DictSafeMixin, Entity):
         if self.requested_extras:
             extras = ExtrasMatch(self.requested_extras)
             for ex in extras.exact_value:
-                for dep in self.extras[ex]:
+                extras = {} if self.extras is None else self.extras
+                deps = extras.get(ex, [])
+                for dep in deps:
                     ms = MatchSpec(dep)
                     result[ms.name] = MatchSpec(ms)  # , optional=False)
         return tuple(result.values())
